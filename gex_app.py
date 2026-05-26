@@ -1,5 +1,12 @@
 import streamlit as st
 import yfinance as yf
+import requests_cache
+
+# Configura una sessione protetta per aggirare il Rate Limit di Yahoo Finance
+session = requests_cache.CachedSession('yfinance.cache', expire_after=60)
+session.headers.update({
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+})
 import numpy as np
 import pandas as pd
 from scipy.stats import norm
@@ -29,7 +36,7 @@ else: max_expirations = 999
 
 @st.cache_data(ttl=300)
 def fetch_and_process_advanced_risk(ticker, r, sigma, max_exp):
-    stock = yf.Ticker(ticker)
+    stock = yf.Ticker(ticker, session=session)
     try: spot_price = stock.history(period="1d")["Close"].iloc[-1]
     except Exception: return None, None, None
     dates = stock.options
